@@ -35,6 +35,8 @@ namespace IdentityServer4.EntityFramework.DbContexts
             modelBuilder.ConfigurePersistedGrantContext(storeOptions);
 
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplayNamingPattern(storeOptions.TablePrefix);
         }
     }
 }

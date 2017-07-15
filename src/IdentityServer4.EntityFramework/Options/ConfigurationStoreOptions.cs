@@ -8,6 +8,11 @@ namespace IdentityServer4.EntityFramework.Options
     {
         public string DefaultSchema { get; set; } = null;
 
+        /// <summary>
+        /// Get or set table name prefix.
+        /// </summary>
+        public string TablePrefix { get; set; }
+
         public TableConfiguration IdentityResource { get; set; } = new TableConfiguration("IdentityResources");
         public TableConfiguration IdentityClaim { get; set; } = new TableConfiguration("IdentityClaims");
 

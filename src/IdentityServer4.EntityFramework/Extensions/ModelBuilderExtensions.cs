@@ -7,10 +7,10 @@ using IdentityServer4.EntityFramework.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Text.RegularExpressions;
 
 namespace IdentityServer4.EntityFramework.Extensions
 {
-
     public static class ModelBuilderExtensions
     {
         private static EntityTypeBuilder<TEntity> ToTable<TEntity>(this EntityTypeBuilder<TEntity> entityTypeBuilder, TableConfiguration configuration)
@@ -195,6 +195,55 @@ namespace IdentityServer4.EntityFramework.Extensions
 
                 apiScopeClaim.Property(x => x.Type).HasMaxLength(200).IsRequired();
             });
+        }
+
+        //Format TableName and PrppertyName
+        public static void ApplayNamingPattern(this ModelBuilder modelBuilder, string tablePrefix = "api_")
+        {
+            var entityTypes = modelBuilder.Model.GetEntityTypes();
+
+            foreach (var entityType in entityTypes)
+            {
+                var name = FormatName(entityType.ClrType.Name);
+
+                if (!string.IsNullOrEmpty(tablePrefix) && !name.StartsWith(tablePrefix))
+                    name = string.Concat(tablePrefix, name);
+
+                var entity = modelBuilder.Entity(entityType.Name);
+                entity.ToTable(name);
+
+                var properties = entityType.GetProperties();
+                foreach (var property in properties)
+                {
+                    name = FormatName(property.Name);
+                    entity.Property(property.Name).HasColumnName(name);
+
+                    if (property.ClrType == typeof(string))
+                    {
+                        var r = property.Relational();
+                        var maxLen = property.GetMaxLength();
+                        if (maxLen == null)
+                        {
+                            maxLen = 255;
+                            property.SetMaxLength(maxLen);
+                            r.ColumnType = $"varchar({maxLen})";
+                        }
+                        else if (maxLen > 255)
+                        {
+                            r.ColumnType = "text";
+                        }
+                        else
+                        {
+                            r.ColumnType = $"varchar({maxLen})";
+                        }
+                    }
+                }
+            }
+        }
+
+        static string FormatName(string name)
+        {
+            return Regex.Replace(name, ".[A-Z]", m => m.Value[0] + "_" + m.Value[1]).ToLower();
         }
     }
 }

@@ -38,6 +38,8 @@ namespace IdentityServer4.EntityFramework.DbContexts
             modelBuilder.ConfigureResourcesContext(storeOptions);
 
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplayNamingPattern(storeOptions.TablePrefix);
         }
     }
 }
